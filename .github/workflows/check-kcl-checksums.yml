@@ -20,7 +20,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Get dependencies
-        run: go get -v -d ./...
+        run: go get -v ./...
 
       - name: Run checksum tool
         run: go run ./checksum-tool/main.go
