@@ -12,15 +12,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod 
+          go-version-file: go.mod
+
+      - name: Get dependencies
+        run: go get -v -d ./...
 
       - name: Run checksum tool
-        run: go run ./checksum-tool/main.go 
+        run: go run ./checksum-tool/main.go
 
       - name: Display Checksum Report
         run: cat checksum-report.md || echo "No checksum report found."
