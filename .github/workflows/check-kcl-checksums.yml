@@ -1,30 +1,26 @@
-name: Check KCL Modules Checksums
+name: Check KCL Modules Checksum
 
-on: 
+on:
   push:
   pull_request:
 
 jobs:
-  check-checksums:
+  check_modules_checksum:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensures full git history is available if needed
+          fetch-depth: 0 
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod  # Automatically uses the Go version specified in go.mod
-
-      - name: Get dependencies
-        run: go get -v -t -d ./...  # Fetches dependencies as done in other workflows
+          go-version-file: go.mod 
 
       - name: Run checksum tool
-        run: go run ./checksum-tool/main.go  # Execute the main Go program that performs checksum validation
+        run: go run ./checksum-tool/main.go 
 
-      # Show the contents of the Markdown checksum report file, if one is generated.
       - name: Display Checksum Report
         run: cat checksum-report.md || echo "No checksum report found."
