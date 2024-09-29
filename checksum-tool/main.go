@@ -2,16 +2,12 @@ package main
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 
 	"kcl-lang.io/kpm/pkg/client"
 	"kcl-lang.io/kpm/pkg/downloader"
-	"kcl-lang.io/kpm/pkg/oci"
-	"kcl-lang.io/kpm/pkg/opt"
 	pkg "kcl-lang.io/kpm/pkg/package"
-	"kcl-lang.io/kpm/pkg/reporter"
 	"kcl-lang.io/kpm/pkg/utils"
 )
 
@@ -26,35 +22,20 @@ func findKCLModFiles(root string) ([]string, error) {
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err // Stop the walk on error
+			return err
 		}
 
-		// Check if it's a file and the name is kcl.mod
 		if !info.IsDir() && info.Name() == KclModFile {
-			// Get the directory containing kcl.mod
 			dir := filepath.Dir(path)
 			locations = append(locations, dir)
 		}
 
-		return nil // Continue walking
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 	return locations, nil
-}
-
-// genDefaultOciUrlForKclPkg generates the default OCI URL for the given package.
-func genDefaultOciUrlForKclPkg(pkg *pkg.KclPkg, kpmcli *client.KpmClient) (string, error) {
-	urlPath := utils.JoinPath(kpmcli.GetSettings().DefaultOciRepo(), pkg.GetPkgName())
-
-	u := &url.URL{
-		Scheme: oci.OCI_SCHEME,
-		Host:   kpmcli.GetSettings().DefaultOciRegistry(),
-		Path:   urlPath,
-	}
-
-	return u.String(), nil
 }
 
 // hasChecksum checks if the package at the given location has a checksum.
@@ -71,26 +52,13 @@ func hasChecksum(directory string) (string, bool) {
 		return "", false
 	}
 
-	ociUrl, err := genDefaultOciUrlForKclPkg(kclPkg, kpmCli)
-	if err != nil {
-		fmt.Printf("Failed to generate OCI URL for package %s: %v\n", kclPkg.GetPkgFullName(), err)
-		return kclPkg.GetPkgFullName(), false
-	}
-
-	// Generate OCI options from the OCI URL and the version of the current KCL package.
-	ociOpts, err := opt.ParseOciOptionFromOciUrl(ociUrl, kclPkg.GetPkgTag())
-	if err != (*reporter.KpmEvent)(nil) {
-		fmt.Printf("Failed to parse OCI options for package %s: %v\n", kclPkg.GetPkgFullName(), err)
-		return kclPkg.GetPkgFullName(), false
-	}
-
 	dep := &pkg.Dependency{
 		Name: kclPkg.ModFile.Pkg.Name,
 		Source: downloader.Source{
 			Oci: &downloader.Oci{
-				Reg:  ociOpts.Reg,
-				Repo: ociOpts.Repo,
-				Tag:  ociOpts.Tag,
+				Reg:  kpmCli.GetSettings().DefaultOciRegistry(),
+				Repo: utils.JoinPath(kpmCli.GetSettings().DefaultOciRepo(), kclPkg.GetPkgName()),
+				Tag:  kclPkg.GetPkgTag(),
 			},
 		},
 	}
@@ -108,9 +76,8 @@ func generateMarkdownReport(locations []string) error {
 	if err != nil {
 		return fmt.Errorf("error creating output file: %w", err)
 	}
-	defer outputFile.Close() // Ensure the file is closed after writing
+	defer outputFile.Close()
 
-	// Write the markdown formatted report
 	_, err = outputFile.WriteString("# Checksum Report\n\n")
 	if err != nil {
 		return fmt.Errorf("error writing header to output file: %w", err)
@@ -144,7 +111,7 @@ func generateMarkdownReport(locations []string) error {
 	if err != nil {
 		return fmt.Errorf("error writing separator to output file: %w", err)
 	}
-	// Write the summary in a visually appealing way
+
 	_, err = outputFile.WriteString("## Summary\n")
 	if err != nil {
 		return fmt.Errorf("error writing summary header to output file: %w", err)
