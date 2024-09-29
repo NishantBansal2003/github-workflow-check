@@ -1,0 +1,32 @@
+name: Check KCL Checksums
+
+on: 
+  push:
+  pull_request:
+
+jobs:
+  check-checksums:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full git history is available if needed
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod  # Automatically uses the Go version specified in go.mod
+
+      - name: Get dependencies
+        run: go get -v -t -d ./...  # Fetches dependencies as done in other workflows
+
+      - name: Run checksum tool
+        run: go run ./checksum-tool/main.go  # Execute the main Go program that performs checksum validation
+
+      - name: Upload Checksum Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: checksum-report
+          path: kcl_mod_locations.txt  # Uploads the generated checksum report
