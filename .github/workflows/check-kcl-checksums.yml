@@ -25,6 +25,6 @@ jobs:
       - name: Run checksum tool
         run: go run ./checksum-tool/main.go  # Execute the main Go program that performs checksum validation
 
-      # Optional: Show the contents of the checksum report file, if one is generated.
+      # Show the contents of the Markdown checksum report file, if one is generated.
       - name: Display Checksum Report
-        run: cat kcl_mod_locations.txt || echo "No checksum report found."
+        run: cat checksum-report.md || echo "No checksum report found."
