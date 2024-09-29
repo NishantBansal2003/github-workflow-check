@@ -51,30 +51,30 @@ func genDefaultOciUrlForKclPkg(pkg *pkg.KclPkg, kpmcli *client.KpmClient) (strin
 }
 
 // hasChecksum checks if the package at the given location has a checksum.
-func hasChecksum(directory string) bool {
+func hasChecksum(directory string) (string, bool) {
 	kpmCli, err := client.NewKpmClient()
 	if err != nil {
 		fmt.Printf("Failed to create KPM client: %v\n", err)
-		return false
+		return "", false
 	}
 
 	kclPkg, err := kpmCli.LoadPkgFromPath(directory)
 	if err != nil {
 		fmt.Printf("Failed to load package from path %s: %v\n", directory, err)
-		return false
+		return "", false
 	}
 
 	ociUrl, err := genDefaultOciUrlForKclPkg(kclPkg, kpmCli)
 	if err != nil {
 		fmt.Printf("Failed to generate OCI URL for package %s: %v\n", kclPkg.GetPkgFullName(), err)
-		return false
+		return kclPkg.GetPkgFullName(), false
 	}
 
 	// Generate OCI options from the OCI URL and the version of the current KCL package.
 	ociOpts, err := opt.ParseOciOptionFromOciUrl(ociUrl, kclPkg.GetPkgTag())
 	if err != (*reporter.KpmEvent)(nil) {
 		fmt.Printf("Failed to parse OCI options for package %s: %v\n", kclPkg.GetPkgFullName(), err)
-		return false
+		return kclPkg.GetPkgFullName(), false
 	}
 
 	dep := &pkg.Dependency{
@@ -91,9 +91,9 @@ func hasChecksum(directory string) bool {
 
 	sum, err := kpmCli.AcquireDepSum(*dep)
 	if err != nil || len(sum) == 0 {
-		return false
+		return kclPkg.GetPkgFullName(), false
 	}
-	return true
+	return kclPkg.GetPkgFullName(), true
 }
 
 func main() {
@@ -119,22 +119,36 @@ func main() {
 
 	// Write the markdown formatted report
 	outputFile.WriteString("# Checksum Report\n\n")
-	outputFile.WriteString("| Package Location | Checksum Status |\n")
-	outputFile.WriteString("|------------------|------------------|\n")
+	outputFile.WriteString("| Package Full Name | Package Location | Checksum Status|\n")
+	outputFile.WriteString("|-------------------|------------------|----------------|\n")
+
+	pkgWithcksum := 0
 
 	for _, loc := range locations {
 		// Check if the package has a checksum
 		checksumStatus := "❌ No"
-		if hasChecksum(loc) {
+
+		pkgName, hasSum := hasChecksum(loc)
+		if hasSum {
 			checksumStatus = "✅ Yes"
+			pkgWithcksum++
 		}
 
-		_, err := outputFile.WriteString(fmt.Sprintf("| %s | %s |\n", loc, checksumStatus))
+		_, err = outputFile.WriteString(fmt.Sprintf("| %s | %s | %s |\n", pkgName, loc, checksumStatus))
 		if err != nil {
 			fmt.Println("Error writing to output file:", err)
 			return
 		}
 	}
+
+	outputFile.WriteString("\n---\n")
+	// Write the summary in a visually appealing way
+	outputFile.WriteString("## Summary\n")
+	outputFile.WriteString("| Metric                     | Count |\n")
+	outputFile.WriteString("|----------------------------|-------|\n")
+	outputFile.WriteString(fmt.Sprintf("| Total Packages Checked      | %d     |\n", len(locations)))
+	outputFile.WriteString(fmt.Sprintf("| Packages with Checksum      | %d     |\n", pkgWithcksum))
+	outputFile.WriteString("\n---\n") // Optional: Add another separator after the summary
 
 	fmt.Println("Markdown report generated: checksum-report.md")
 }
