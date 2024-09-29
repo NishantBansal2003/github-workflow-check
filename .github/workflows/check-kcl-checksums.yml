@@ -27,3 +27,12 @@ jobs:
 
       - name: Display Checksum Report
         run: cat checksum-report.md || echo "No checksum report found."
+
+      - name: Add and Push Checksum Report
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+
+          git add checksum-report.md
+          git commit -m "chore: updated checksum-report.md"
+          git push
