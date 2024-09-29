@@ -1,4 +1,4 @@
-name: Check KCL Checksums
+name: Check KCL Modules Checksums
 
 on: 
   push:

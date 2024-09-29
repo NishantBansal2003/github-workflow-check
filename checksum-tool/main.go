@@ -15,6 +15,11 @@ import (
 	"kcl-lang.io/kpm/pkg/utils"
 )
 
+const (
+	OutputFileName = "checksum-report.md"
+	KclModFile     = "kcl.mod"
+)
+
 // findKCLModFiles locates all kcl.mod files in the specified directory and returns their paths.
 func findKCLModFiles(root string) ([]string, error) {
 	var locations []string
@@ -25,7 +30,7 @@ func findKCLModFiles(root string) ([]string, error) {
 		}
 
 		// Check if it's a file and the name is kcl.mod
-		if !info.IsDir() && info.Name() == "kcl.mod" {
+		if !info.IsDir() && info.Name() == KclModFile {
 			// Get the directory containing kcl.mod
 			dir := filepath.Dir(path)
 			locations = append(locations, dir)
@@ -33,8 +38,10 @@ func findKCLModFiles(root string) ([]string, error) {
 
 		return nil // Continue walking
 	})
-
-	return locations, err
+	if err != nil {
+		return nil, err
+	}
+	return locations, nil
 }
 
 // genDefaultOciUrlForKclPkg generates the default OCI URL for the given package.
@@ -96,6 +103,76 @@ func hasChecksum(directory string) (string, bool) {
 	return kclPkg.GetPkgFullName(), true
 }
 
+func generateMarkdownReport(locations []string) error {
+	outputFile, err := os.Create(OutputFileName)
+	if err != nil {
+		return fmt.Errorf("error creating output file: %w", err)
+	}
+	defer outputFile.Close() // Ensure the file is closed after writing
+
+	// Write the markdown formatted report
+	_, err = outputFile.WriteString("# Checksum Report\n\n")
+	if err != nil {
+		return fmt.Errorf("error writing header to output file: %w", err)
+	}
+	_, err = outputFile.WriteString("| Package Full Name | Package Location | Checksum Status|\n")
+	if err != nil {
+		return fmt.Errorf("error writing table header to output file: %w", err)
+	}
+	_, err = outputFile.WriteString("|-------------------|------------------|----------------|\n")
+	if err != nil {
+		return fmt.Errorf("error writing table separator to output file: %w", err)
+	}
+
+	pkgWithChecksum := 0
+
+	for _, loc := range locations {
+		checksumStatus := "❌ No"
+		pkgName, hasSum := hasChecksum(loc)
+		if hasSum {
+			checksumStatus = "✅ Yes"
+			pkgWithChecksum++
+		}
+
+		_, err = outputFile.WriteString(fmt.Sprintf("| %s | %s | %s |\n", pkgName, loc, checksumStatus))
+		if err != nil {
+			return fmt.Errorf("error writing package info to output file: %w", err)
+		}
+	}
+
+	_, err = outputFile.WriteString("\n---\n")
+	if err != nil {
+		return fmt.Errorf("error writing separator to output file: %w", err)
+	}
+	// Write the summary in a visually appealing way
+	_, err = outputFile.WriteString("## Summary\n")
+	if err != nil {
+		return fmt.Errorf("error writing summary header to output file: %w", err)
+	}
+	_, err = outputFile.WriteString("| Metric                     | Count |\n")
+	if err != nil {
+		return fmt.Errorf("error writing summary table header to output file: %w", err)
+	}
+	_, err = outputFile.WriteString("|----------------------------|-------|\n")
+	if err != nil {
+		return fmt.Errorf("error writing summary table separator to output file: %w", err)
+	}
+	_, err = outputFile.WriteString(fmt.Sprintf("| Total Packages Checked      | %d     |\n", len(locations)))
+	if err != nil {
+		return fmt.Errorf("error writing total packages to output file: %w", err)
+	}
+	_, err = outputFile.WriteString(fmt.Sprintf("| Packages with Checksum      | %d     |\n", pkgWithChecksum))
+	if err != nil {
+		return fmt.Errorf("error writing packages with checksum to output file: %w", err)
+	}
+	_, err = outputFile.WriteString("\n---\n")
+	if err != nil {
+		return fmt.Errorf("error writing final separator to output file: %w", err)
+	}
+
+	return nil
+}
+
 func main() {
 	root, err := os.Getwd()
 	if err != nil {
@@ -105,50 +182,15 @@ func main() {
 
 	locations, err := findKCLModFiles(root)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error finding kcl.mod files:", err)
 		return
 	}
 
-	// Create or truncate the output file to write the results
-	outputFile, err := os.Create("checksum-report.md")
+	err = generateMarkdownReport(locations)
 	if err != nil {
-		fmt.Println("Error creating output file:", err)
+		fmt.Println("Error generating markdown report:", err)
 		return
 	}
-	defer outputFile.Close() // Ensure the file is closed after writing
 
-	// Write the markdown formatted report
-	outputFile.WriteString("# Checksum Report\n\n")
-	outputFile.WriteString("| Package Full Name | Package Location | Checksum Status|\n")
-	outputFile.WriteString("|-------------------|------------------|----------------|\n")
-
-	pkgWithcksum := 0
-
-	for _, loc := range locations {
-		// Check if the package has a checksum
-		checksumStatus := "❌ No"
-
-		pkgName, hasSum := hasChecksum(loc)
-		if hasSum {
-			checksumStatus = "✅ Yes"
-			pkgWithcksum++
-		}
-
-		_, err = outputFile.WriteString(fmt.Sprintf("| %s | %s | %s |\n", pkgName, loc, checksumStatus))
-		if err != nil {
-			fmt.Println("Error writing to output file:", err)
-			return
-		}
-	}
-
-	outputFile.WriteString("\n---\n")
-	// Write the summary in a visually appealing way
-	outputFile.WriteString("## Summary\n")
-	outputFile.WriteString("| Metric                     | Count |\n")
-	outputFile.WriteString("|----------------------------|-------|\n")
-	outputFile.WriteString(fmt.Sprintf("| Total Packages Checked      | %d     |\n", len(locations)))
-	outputFile.WriteString(fmt.Sprintf("| Packages with Checksum      | %d     |\n", pkgWithcksum))
-	outputFile.WriteString("\n---\n") // Optional: Add another separator after the summary
-
-	fmt.Println("Markdown report generated: checksum-report.md")
+	fmt.Println("Markdown report generated:", OutputFileName)
 }
