@@ -110,29 +110,31 @@ func main() {
 	}
 
 	// Create or truncate the output file to write the results
-	outputFile, err := os.Create("kcl_mod_locations.txt")
+	outputFile, err := os.Create("checksum-report.md")
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
 		return
 	}
 	defer outputFile.Close() // Ensure the file is closed after writing
 
+	// Write the markdown formatted report
+	outputFile.WriteString("# Checksum Report\n\n")
+	outputFile.WriteString("| Package Location | Checksum Status |\n")
+	outputFile.WriteString("|------------------|------------------|\n")
+
 	for _, loc := range locations {
 		// Check if the package has a checksum
+		checksumStatus := "❌ No"
 		if hasChecksum(loc) {
-			_, err := outputFile.WriteString(fmt.Sprintf("Checksum Status at %s is - YES\n", loc))
-			if err != nil {
-				fmt.Println("Error writing to output file:", err)
-				return
-			}
-		} else {
-			_, err := outputFile.WriteString(fmt.Sprintf("Checksum Status at %s is - NO\n", loc))
-			if err != nil {
-				fmt.Println("Error writing to output file:", err)
-				return
-			}
+			checksumStatus = "✅ Yes"
+		}
+
+		_, err := outputFile.WriteString(fmt.Sprintf("| %s | %s |\n", loc, checksumStatus))
+		if err != nil {
+			fmt.Println("Error writing to output file:", err)
+			return
 		}
 	}
 
-	fmt.Println("Output written to kcl_mod_locations.txt")
+	fmt.Println("Markdown report generated: checksum-report.md")
 }
