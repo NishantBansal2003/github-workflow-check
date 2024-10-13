@@ -1,0 +1,17 @@
+[dependencies]
+  [dependencies.argo-workflow]
+    name = "argo-workflow"
+    full_name = "argo-workflow_0.0.4"
+    version = "0.0.4"
+  [dependencies.istio]
+    name = "istio"
+    full_name = "istio_1.21.3"
+    version = "1.21.3"
+  [dependencies.k8s]
+    name = "k8s"
+    full_name = "k8s_1.31.1"
+    version = "1.31.1"
+  [dependencies.kwok]
+    name = "kwok"
+    full_name = "kwok_0.0.1"
+    version = "0.0.1"
