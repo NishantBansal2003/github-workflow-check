@@ -1,0 +1,32 @@
+[dependencies]
+  [dependencies.argo-cd-order]
+    name = "argo-cd-order"
+    full_name = "argo-cd-order_0.2.0"
+    version = "0.2.0"
+  [dependencies.argo-workflow]
+    name = "argo-workflow"
+    full_name = "argo-workflow_0.0.4"
+    version = "0.0.4"
+  [dependencies.istio]
+    name = "istio"
+    full_name = "istio_1.21.3"
+    version = "1.21.3"
+  [dependencies.json_merge_patch]
+    name = "json_merge_patch"
+    full_name = "json_merge_patch_0.1.0"
+    version = "0.1.0"
+    reg = "ghcr.io"
+    repo = "kcl-lang/json_merge_patch"
+    oci_tag = "0.1.0"
+  [dependencies.jsonpatch]
+    name = "jsonpatch"
+    full_name = "jsonpatch_0.0.5"
+    version = "0.0.5"
+  [dependencies.k8s]
+    name = "k8s"
+    full_name = "k8s_1.31.1"
+    version = "1.31.1"
+  [dependencies.kwok]
+    name = "kwok"
+    full_name = "kwok_0.0.1"
+    version = "0.0.1"

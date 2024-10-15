@@ -1,1 +1,0 @@
-The_first_kcl_program = 'Hello! Nishant this side, Nice to meet you.'
