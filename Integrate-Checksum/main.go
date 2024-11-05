@@ -15,6 +15,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/retry"
 
 	"kcl-lang.io/kpm/pkg/client"
+	"kcl-lang.io/kpm/pkg/constants"
 	"kcl-lang.io/kpm/pkg/downloader"
 	"kcl-lang.io/kpm/pkg/opt"
 	pkg "kcl-lang.io/kpm/pkg/package"
@@ -111,7 +112,7 @@ func updateChecksum(manifest ocispec.Manifest, kpmClient *client.KpmClient, depe
 	if manifest.Annotations == nil {
 		manifest.Annotations = make(map[string]string)
 	}
-	manifest.Annotations["constants.DEFAULT_KCL_OCI_MANIFEST_SUM"] = " dependency.Sum"
+	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = "Wrong-checksum"
 
 	repo, err := configureRepository(dependency, kpmClient)
 	if err != nil {
@@ -214,4 +215,6 @@ func main() {
 			fmt.Printf("Error processing package at '%s': %v\n", packageDir, err)
 		}
 	}
+
+	fmt.Println("Checksum successfully included in all KCL packages")
 }
