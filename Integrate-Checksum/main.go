@@ -112,7 +112,7 @@ func updateChecksum(manifest ocispec.Manifest, kpmClient *client.KpmClient, depe
 	if manifest.Annotations == nil {
 		manifest.Annotations = make(map[string]string)
 	}
-	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = "Wrong-checksum"
+	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = dependency.Sum
 
 	repo, err := configureRepository(dependency, kpmClient)
 	if err != nil {
@@ -185,10 +185,10 @@ func processPackage(packageDir string) error {
 		return fmt.Errorf("failed to fetch manifest: %w", err)
 	}
 
-	// if existingSum, ok := manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM]; ok && dependency.Sum == existingSum {
-	// 	fmt.Println("Manifest already up to date with matching checksum.")
-	// 	return nil
-	// }
+	if existingSum, ok := manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM]; ok && dependency.Sum == existingSum {
+		fmt.Println("Manifest already up to date with matching checksum.")
+		return nil
+	}
 
 	if err := updateChecksum(manifest, kpmClient, dependency); err != nil {
 		return fmt.Errorf("failed to update checksum in manifest: %w", err)
