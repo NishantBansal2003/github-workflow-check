@@ -71,7 +71,7 @@ func resolveDependency(kpmClient *client.KpmClient, packageDir string) (*pkg.Dep
 		Source: downloader.Source{
 			Oci: &downloader.Oci{
 				Reg:  kpmClient.GetSettings().DefaultOciRegistry(),
-				Repo: utils.JoinPath("nishantbansal2003", kclPkg.GetPkgName()),
+				Repo: utils.JoinPath(kpmClient.GetSettings().DefaultOciRepo(), kclPkg.GetPkgName()),
 				Tag:  kclPkg.GetPkgTag(),
 			},
 		},
@@ -112,7 +112,7 @@ func updateChecksum(manifest ocispec.Manifest, kpmClient *client.KpmClient, depe
 	if manifest.Annotations == nil {
 		manifest.Annotations = make(map[string]string)
 	}
-	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = "Hard-review"
+	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = "Second-Hard-review"
 
 	repo, err := configureRepository(dependency, kpmClient)
 	if err != nil {
