@@ -65,6 +65,7 @@ func hasChecksum(directory string) (string, bool) {
 	dep.FromKclPkg(kclPkg)
 
 	sum, err := kpmCli.AcquireDepSum(*dep)
+	fmt.Println("Sum is %s\n", sum)
 	if err != nil || len(sum) == 0 {
 		return kclPkg.GetPkgFullName(), false
 	}
