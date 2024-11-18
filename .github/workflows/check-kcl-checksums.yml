@@ -1,6 +1,7 @@
 name: Check KCL Modules Checksum
 
 on:
+  workflow_dispatch:
   push:
   pull_request:
 
