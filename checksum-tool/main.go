@@ -57,7 +57,7 @@ func hasChecksum(directory string) (string, bool) {
 		Source: downloader.Source{
 			Oci: &downloader.Oci{
 				Reg:  kpmCli.GetSettings().DefaultOciRegistry(),
-				Repo: utils.JoinPath(kpmCli.GetSettings().DefaultOciRepo(), kclPkg.GetPkgName()),
+				Repo: utils.JoinPath("nishantbansal2003", kclPkg.GetPkgName()),
 				Tag:  kclPkg.GetPkgTag(),
 			},
 		},
