@@ -117,7 +117,7 @@ func updateChecksum(manifest ocispec.Manifest, kpmClient *client.KpmClient, depe
 	if manifest.Annotations == nil {
 		manifest.Annotations = make(map[string]string)
 	}
-	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = "May-be-a-Final-review"
+	manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM] = dependency.Sum
 
 	repo, err := configureRepository(dependency, kpmClient)
 	if err != nil {
@@ -180,19 +180,19 @@ func processPackage(packageDir string, kpmClient *client.KpmClient, pkgName stri
 		return fmt.Errorf("failed to resolve dependency: %w", err)
 	}
 
-	if dependency.Name != pkgName || dependency.Version != pkgVersion {
-		return nil
-	}
+	// if dependency.Name != pkgName || dependency.Version != pkgVersion {
+	// 	return nil
+	// }
 
 	manifest, err := fetchManifest(kpmClient, dependency)
 	if err != nil {
 		return fmt.Errorf("failed to fetch manifest: %w", err)
 	}
 
-	// if existingSum, ok := manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM]; ok && dependency.Sum == existingSum {
-	// 	fmt.Println("Manifest already up to date with matching checksum.")
-	// 	return nil
-	// }
+	if existingSum, ok := manifest.Annotations[constants.DEFAULT_KCL_OCI_MANIFEST_SUM]; ok && dependency.Sum == existingSum {
+		fmt.Println("Manifest already up to date with matching checksum.")
+		return nil
+	}
 
 	if err := updateChecksum(manifest, kpmClient, dependency); err != nil {
 		return fmt.Errorf("failed to update checksum in manifest: %w", err)
@@ -232,5 +232,5 @@ func main() {
 		}
 	}
 
-	fmt.Println("Checksum successfully included in all KCL packages")
+	fmt.Printf("Checksum successfully included in the package '%s' of version '%s'\n", pkgName, pkgVersion)
 }
