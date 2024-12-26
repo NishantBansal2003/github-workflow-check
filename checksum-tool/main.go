@@ -160,5 +160,5 @@ func main() {
 		return
 	}
 
-	fmt.Println("Markdown report generated:", OutputFileName)
+	fmt.Println("Successfully generated markdown report :", OutputFileName)
 }
